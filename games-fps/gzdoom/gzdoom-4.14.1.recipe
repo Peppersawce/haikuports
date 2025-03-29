@@ -91,7 +91,7 @@ BUILD_REQUIRES="
 	#devel:libexecinfo$secondaryArchSuffix #Probably needed for version info, but backtrace isn't found by CMake either way
 	devel:libGL$secondaryArchSuffix
 	devel:libgme$secondaryArchSuffix
-	#devel:libgtk_3$secondaryArchSuffix #Optional, for GTK3 interface, needed with DYN_GTK=OFF
+	devel:libgtk_3$secondaryArchSuffix #For GTK3 interface, needed with DYN_GTK=OFF, optional with DYN_GTK=ON, skipped with NO_GTK=ON
 	devel:libjpeg$secondaryArchSuffix
 	devel:liblzma$secondaryArchSuffix
 	devel:libSDL2_2.0$secondaryArchSuffix
