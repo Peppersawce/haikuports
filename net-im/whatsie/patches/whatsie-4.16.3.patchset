@@ -1,0 +1,179 @@
+From 86a659bcdcf84d3d44fd8d1f3715881be170aa86 Mon Sep 17 00:00:00 2001
+From: Peppersawce <michaelpeppers89@yahoo.it>
+Date: Sun, 11 Jan 2026 01:12:30 +0100
+Subject: Haiku fixes & cleanup
+
+
+diff --git a/src/WhatsApp.pro b/src/WhatsApp.pro
+index 38995b7..e66a5de 100644
+--- a/src/WhatsApp.pro
++++ b/src/WhatsApp.pro
+@@ -43,7 +43,7 @@ qtConfig(webengine-native-spellchecker) {
+ 
+ TARGET = whatsie
+ TEMPLATE = app
+-LIBS += -L/usr/X11/lib -lX11
++#LIBS += -L/usr/X11/lib -lX11
+ 
+ include(singleapplication/singleapplication.pri)
+ DEFINES += QAPPLICATION_CLASS=QApplication
+@@ -151,7 +151,7 @@ isEmpty(PREFIX){
+ message("Installation prefix: $$PREFIX")
+ 
+ BINDIR  = $$PREFIX/bin
+-DATADIR = $$PREFIX/share
++DATADIR = $$PREFIX/data
+ 
+ target.path = $$BINDIR
+ 
+@@ -173,7 +173,7 @@ CONFIG(FLATPAK){
+     QMAKE_EXTRA_COMPILERS += dictoolbuild
+     
+     dictionaries.files = $${DICTIONARIES_DIR}/
+-    dictionaries.path  = $$DATADIR/org.keshavnrj.ubuntu/WhatSie/
++    dictionaries.path  = $$DATADIR/WhatSie/
+     
+     unix:INSTALLS += dictionaries
+ }
+@@ -205,5 +205,5 @@ appstream.files = ../dist/linux/com.ktechpit.whatsie.appdata.xml
+ desktop.path  = $$DATADIR/applications/
+ desktop.files = ../dist/linux/com.ktechpit.whatsie.desktop
+ 
+-unix:INSTALLS += target icon16 icon32 icon64 icon128 icon256
+-unix:INSTALLS += iconscalable iconsymbolic license appstream desktop
++#unix:INSTALLS += target icon16 icon32 icon64 icon128 icon256
++#unix:INSTALLS += iconscalable iconsymbolic license appstream desktop
+diff --git a/src/dictionaries.cpp b/src/dictionaries.cpp
+index 5299806..6994327 100644
+--- a/src/dictionaries.cpp
++++ b/src/dictionaries.cpp
+@@ -25,13 +25,17 @@ QString Dictionaries::GetDictionaryPath() {
+ 
+   QString dict_dir = "qtwebengine_dictionaries";
+ 
+-  // inside appdata dir /usr/share/org/appname
+-  QString appdata_path = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation).filter("/usr/share").first();
++  // inside appdata dir /boot/home
+   dict_path =
+-      QString("%1/%2/%3/%4")
+-          .arg(appdata_path,QApplication::organizationName(),
+-               QApplication::applicationName(), dict_dir);
+-  qDebug()<< dict_path;
++      QString("%1/%2/%3")
++          .arg("/boot/home/config/data", QApplication::applicationName(), dict_dir);
++  if (QDir(dict_path).exists()) {
++    return dict_path;
++  }
++  // inside appdata dir /boot/system
++  dict_path =
++      QString("%1/%2/%3")
++          .arg("/boot/system/data", QApplication::applicationName(), dict_dir);
+   if (QDir(dict_path).exists()) {
+     return dict_path;
+   }
+diff --git a/src/lock.cpp b/src/lock.cpp
+index 46d8160..208c992 100644
+--- a/src/lock.cpp
++++ b/src/lock.cpp
+@@ -1,22 +1,11 @@
+ #include "lock.h"
+ #include "ui_lock.h"
+ 
+-#include "X11/XKBlib.h" // keep this header at bottom
+-
+ Lock::Lock(QWidget *parent) : QWidget(parent), ui(new Ui::Lock) {
+   ui->setupUi(this);
+   ui->setPass->setEnabled(false);
+   ui->wrong->hide();
+ 
+-  MoreApps *moreApps =
+-      new MoreApps(this, nullptr, "keshavnrj",
+-                   QUrl("https://raw.githubusercontent.com/keshavbhatt/appdata/"
+-                        "main/moreapps.txt"),
+-                   false);
+-  moreApps->setWindowTitle("More Applications by developer");
+-  moreApps->setFixedHeight(98);
+-  ui->moreAppsLayout->addWidget(moreApps);
+-
+   passcodeLoginAction = ui->passcodeLogin->addAction(
+       QIcon(":/icons/green_arrow-right-line.png"), QLineEdit::TrailingPosition);
+   passcodeLoginAction->setEnabled(false);
+@@ -235,15 +224,7 @@ void Lock::lock_app() {
+ void Lock::on_passcodeLogin_returnPressed() { passcodeLoginAction->trigger(); }
+ 
+ bool Lock::getCapsLockOn() {
+-  Display *d = XOpenDisplay(nullptr);
+-  bool caps_state = false;
+-  if (d) {
+-    unsigned n;
+-    XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
+-    caps_state = (n & 0x01) == 1;
+-    XCloseDisplay(d);
+-  }
+-  return caps_state;
++  return false;
+ }
+ 
+ void Lock::on_cancelSetting_clicked() {
+diff --git a/src/rateapp.cpp b/src/rateapp.cpp
+index c258c37..6b4119f 100644
+--- a/src/rateapp.cpp
++++ b/src/rateapp.cpp
+@@ -83,30 +83,7 @@ void RateApp::delayShowEvent() {
+  * @return true, if the dialog should be shown to user
+  */
+ bool RateApp::shouldShow() {
+-  bool shouldShow = false;
+-  int app_launched_count = SettingsManager::instance()
+-                               .settings()
+-                               .value("app_launched_count", 0)
+-                               .toInt();
+-  qint64 currentDateTime = QDateTime::currentSecsSinceEpoch();
+-  qint64 installed_date_time = SettingsManager::instance()
+-                                   .settings()
+-                                   .value("app_install_time")
+-                                   .toLongLong();
+-  bool ratedAlready = SettingsManager::instance()
+-                          .settings()
+-                          .value("rated_already", false)
+-                          .toBool();
+-
+-  if (ratedAlready) // return false if already reated;
+-    return false;
+-
+-  shouldShow =
+-      (((currentDateTime - installed_date_time > app_install_days * 86400) ||
+-        app_launched_count >= this->app_launch_count) &&
+-       ratedAlready == false);
+-
+-  return shouldShow;
++  return false;
+ }
+ 
+ RateApp::~RateApp() {
+-- 
+2.52.0
+
+
+From 64bef5a8a91f446f8bd5a8c09b4300cb5d2beeeb Mon Sep 17 00:00:00 2001
+From: Peppersawce <michaelpeppers89@yahoo.it>
+Date: Sun, 11 Jan 2026 21:08:31 +0100
+Subject: This fixes "config" and "cache" dir creation (somewhat)
+
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 1d5efe9..966b907 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
+   QApplication::setApplicationName("WhatSie");
+   QApplication::setDesktopFileName("com.ktechpit.whatsie");
+   QApplication::setOrganizationDomain("com.ktechpit");
+-  QApplication::setOrganizationName("org.keshavnrj.ubuntu");
++  QApplication::setOrganizationName("");
+   QApplication::setApplicationVersion(VERSIONSTR);
+ 
+   qputenv("QTWEBENGINE_DICTIONARIES_PATH",
+-- 
+2.52.0
+
