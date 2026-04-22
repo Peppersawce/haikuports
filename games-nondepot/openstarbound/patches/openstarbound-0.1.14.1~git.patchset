@@ -1,0 +1,161 @@
+From 0ed81c9e8c1fe4f2fa32088fca36a523be857eca Mon Sep 17 00:00:00 2001
+From: Peppersawce <michaelpeppers89@yahoo.it>
+Date: Tue, 14 Apr 2026 22:45:28 +0200
+Subject: Update ImGui stuff to 1.92.7
+
+
+diff --git a/source/client/StarClientApplication.cpp b/source/client/StarClientApplication.cpp
+index 7f21ffd..4011d50 100644
+--- a/source/client/StarClientApplication.cpp
++++ b/source/client/StarClientApplication.cpp
+@@ -245,7 +245,7 @@ void ClientApplication::applicationInit(ApplicationControllerPtr appController)
+     m_immediateFont = *assets->bytes("/hobo.ttf");
+     ImFontConfig config{};
+     config.FontDataOwnedByAtlas = false;
+-    config.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
++    config.FontLoaderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+     io.Fonts->AddFontFromMemoryTTF(m_immediateFont.ptr(), m_immediateFont.size(),
+       16, &config, io.Fonts->GetGlyphRangesDefault());
+   }
+diff --git a/source/extern/imgui_iterator.inl b/source/extern/imgui_iterator.inl
+index df3e375..e53147f 100644
+--- a/source/extern/imgui_iterator.inl
++++ b/source/extern/imgui_iterator.inl
+@@ -2165,9 +2165,9 @@ MAKE_ENUM(ImGuiWindowFlags_Modal,Modal)
+ //    ImGuiWindowFlags_ChildMenu              = 1 << 28,  // Don't use! For internal use by BeginMenu()
+ MAKE_ENUM(ImGuiWindowFlags_ChildMenu,ChildMenu)
+ //    ImGuiWindowFlags_NavFlattened           = 1 << 29,  // Obsoleted in 1.90.9: Use ImGuiChildFlags_NavFlattened in BeginChild() call.
+-MAKE_ENUM(ImGuiWindowFlags_NavFlattened,NavFlattened)
++//MAKE_ENUM(ImGuiWindowFlags_NavFlattened,NavFlattened)
+ //    ImGuiWindowFlags_AlwaysUseWindowPadding = 1 << 30,  // Obsoleted in 1.90.0: Use ImGuiChildFlags_AlwaysUseWindowPadding in BeginChild() call.
+-MAKE_ENUM(ImGuiWindowFlags_AlwaysUseWindowPadding,AlwaysUseWindowPadding)
++//MAKE_ENUM(ImGuiWindowFlags_AlwaysUseWindowPadding,AlwaysUseWindowPadding)
+ END_ENUM(WindowFlags)
+ //enum ImGuiChildFlags_
+ 
+@@ -2193,7 +2193,7 @@ MAKE_ENUM(ImGuiChildFlags_FrameStyle,FrameStyle)
+ //    ImGuiChildFlags_NavFlattened            = 1 << 8,   // [BETA] Share focus scope, allow keyboard/gamepad navigation to cross over parent border to this child or between sibling child windows.
+ MAKE_ENUM(ImGuiChildFlags_NavFlattened,NavFlattened)
+ //    ImGuiChildFlags_Border                  = ImGuiChildFlags_Borders,  // Renamed in 1.91.1 (August 2024) for consistency.
+-MAKE_ENUM(ImGuiChildFlags_Border,Border)
++//MAKE_ENUM(ImGuiChildFlags_Border,Border)
+ END_ENUM(ChildFlags)
+ //enum ImGuiItemFlags_
+ 
+@@ -2309,7 +2309,7 @@ MAKE_ENUM(ImGuiTreeNodeFlags_NavLeftJumpsBackHere,NavLeftJumpsBackHere)
+ //    ImGuiTreeNodeFlags_CollapsingHeader     = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_NoAutoOpenOnLog,
+ MAKE_ENUM(ImGuiTreeNodeFlags_CollapsingHeader,CollapsingHeader)
+ //    ImGuiTreeNodeFlags_AllowItemOverlap     = ImGuiTreeNodeFlags_AllowOverlap,  // Renamed in 1.89.7
+-MAKE_ENUM(ImGuiTreeNodeFlags_AllowItemOverlap,AllowItemOverlap)
++//MAKE_ENUM(ImGuiTreeNodeFlags_AllowItemOverlap,AllowItemOverlap)
+ //    ImGuiTreeNodeFlags_SpanTextWidth        = ImGuiTreeNodeFlags_SpanLabelWidth,// Renamed in 1.90.7
+ MAKE_ENUM(ImGuiTreeNodeFlags_SpanTextWidth,SpanTextWidth)
+ END_ENUM(TreeNodeFlags)
+@@ -2357,7 +2357,7 @@ MAKE_ENUM(ImGuiSelectableFlags_Highlight,Highlight)
+ //    ImGuiSelectableFlags_DontClosePopups    = ImGuiSelectableFlags_NoAutoClosePopups,   // Renamed in 1.91.0
+ MAKE_ENUM(ImGuiSelectableFlags_DontClosePopups,DontClosePopups)
+ //    ImGuiSelectableFlags_AllowItemOverlap   = ImGuiSelectableFlags_AllowOverlap,        // Renamed in 1.89.7
+-MAKE_ENUM(ImGuiSelectableFlags_AllowItemOverlap,AllowItemOverlap)
++//MAKE_ENUM(ImGuiSelectableFlags_AllowItemOverlap,AllowItemOverlap)
+ END_ENUM(SelectableFlags)
+ //enum ImGuiComboFlags_
+ 
+@@ -3603,7 +3603,7 @@ DRAW_LIST_CALL_FUNCTION_NO_RET(_OnChangedClipRect)
+ END_IMGUI_FUNC
+ //    IMGUI_API void  _OnChangedTextureID();
+ IMGUI_FUNCTION_DRAW_LIST(_OnChangedTextureID)
+-DRAW_LIST_CALL_FUNCTION_NO_RET(_OnChangedTextureID)
++DRAW_LIST_CALL_FUNCTION_NO_RET(_OnChangedTexture)
+ END_IMGUI_FUNC
+ //    IMGUI_API void  _OnChangedVtxOffset();
+ IMGUI_FUNCTION_DRAW_LIST(_OnChangedVtxOffset)
+@@ -3612,7 +3612,7 @@ END_IMGUI_FUNC
+ //    IMGUI_API void  _SetTextureID(ImTextureID texture_id);
+ IMGUI_FUNCTION_DRAW_LIST(_SetTextureID)
+ IM_TEXTURE_ID_ARG(texture_id)
+-DRAW_LIST_CALL_FUNCTION_NO_RET(_SetTextureID, texture_id)
++DRAW_LIST_CALL_FUNCTION_NO_RET(_SetTexture, texture_id)
+ END_IMGUI_FUNC
+ //    IMGUI_API void  _PathArcToFastEx(const ImVec2& center, float radius, int a_min_sample, int a_max_sample, int a_step);
+ IMGUI_FUNCTION_DRAW_LIST(_PathArcToFastEx)
+-- 
+2.52.0
+
+
+From b7bbcc59f416d4c81d2133fd104e3b40c16742f2 Mon Sep 17 00:00:00 2001
+From: Peppersawce <michaelpeppers89@yahoo.it>
+Date: Tue, 14 Apr 2026 22:46:41 +0200
+Subject: Change OpenSb asset font to avoid a crash
+
+
+diff --git a/assets/opensb/interface.config.patch b/assets/opensb/interface.config.patch
+index 03ebffd..b0260c2 100644
+--- a/assets/opensb/interface.config.patch
++++ b/assets/opensb/interface.config.patch
+@@ -33,7 +33,7 @@
+ 
+   "tooltip" : { "previewArmorWith" : "player" },
+   "debugTextStyle" : {
+-    "font" : "iosevka-semibold",
++    "font" : "NotoSans-SemiBold",
+     "fontSize" : 7,
+     "backDirectives" : "border=1;fff;fff7?multiply=333a"
+   },
+diff --git a/assets/opensb/interface/optionsmenu/optionsmenu.config.patch b/assets/opensb/interface/optionsmenu/optionsmenu.config.patch
+index 4755b45..d68c176 100644
+--- a/assets/opensb/interface/optionsmenu/optionsmenu.config.patch
++++ b/assets/opensb/interface/optionsmenu/optionsmenu.config.patch
+@@ -20,7 +20,7 @@
+       "type" : "button",
+       "disabled" : true,
+       "position" : [133, 185],
+-      "caption" : "^#a0a000,font=iosevka-semiboldoblique;TODO^#aa7;:^reset; Players",
++      "caption" : "^#a0a000,font=NotoSans-SemiBold;TODO^#aa7;:^reset; Players",
+       "base" : "/interface/optionsmenu/duocontrolsbutton.png",
+       "hover" : "/interface/optionsmenu/duocontrolsbuttonhover.png"
+     },
+diff --git a/assets/opensb/scripts/opensb/universeclient/voicemanager.lua b/assets/opensb/scripts/opensb/universeclient/voicemanager.lua
+index 9e1f81e..e82fc7d 100644
+--- a/assets/opensb/scripts/opensb/universeclient/voicemanager.lua
++++ b/assets/opensb/scripts/opensb/universeclient/voicemanager.lua
+@@ -83,7 +83,7 @@ local function drawSpeakerBar(mouse, pos, speaker, i)
+ 		if input.keyHeld("LShift") then
+ 			textPositioning.position = {pos[1] + 288, pos[2] + 24}
+ 			textPositioning.horizontalAnchor = "right"
+-			canvas:drawText("^#fff7,font=iosevka-semibold;" .. tostring(speaker.speakerId), textPositioning, 16, nil, nil, nil, FONT_DIRECTIVES)
++			canvas:drawText("^#fff7,font=NotoSans-SemiBold;" .. tostring(speaker.speakerId), textPositioning, 16, nil, nil, nil, FONT_DIRECTIVES)
+ 		end
+ 
+ 		if input.mouseDown("MouseLeft") then
+-- 
+2.52.0
+
+
+From c7fa95c3395b637cd46d11ad6d6ccae2db960321 Mon Sep 17 00:00:00 2001
+From: Peppersawce <michaelpeppers89@yahoo.it>
+Date: Tue, 14 Apr 2026 23:13:07 +0200
+Subject: Adapt Linux startup script for Hpkg
+
+
+diff --git a/scripts/linux/sbinit.config b/scripts/linux/sbinit.config
+index 66776ed..ae69373 100644
+--- a/scripts/linux/sbinit.config
++++ b/scripts/linux/sbinit.config
+@@ -1,10 +1,12 @@
+ {
+   "assetDirectories" : [
+-    "../assets/",
+-    "./mods/"
++    "/boot/home/config/settings/OpenStarbound/assets/",
++    "/boot/home/config/data/OpenStarbound/assets/",
++    "/boot/system/data/OpenStarbound/assets/",
++    "/boot/home/config/settings/OpenStarbound/mods/"
+   ],
+ 
+-  "storageDirectory" : "./",
++  "storageDirectory" : "/boot/home/config/settings/OpenStarbound/storage/",
+ 
+   "assetsSettings" : {
+     "pathIgnore" : [],
+-- 
+2.52.0

@@ -1,0 +1,162 @@
+SUMMARY="Open continuation of Starbound"
+DESCRIPTION="OpenStarbound is a mod of the latest version of Starbound, 1.4.4. \
+It fixes many bugs, adds many new features and improves performance.
+
+In order to play, copy the 'assets' folder's content from the original game to \
+~/config/settings/OpenStarbound/assets"
+HOMEPAGE="https://github.com/OpenStarbound/OpenStarbound"
+COPYRIGHT="Chucklefish
+	OpenStarbound contributors"
+LICENSE="Artistic"
+REVISION="1"
+srcGitRev="5f7a954a0410b6229739cefb72496b60c0eb1394"
+SOURCE_URI="https://github.com/OpenStarbound/OpenStarbound/archive/$srcGitRev.zip"
+CHECKSUM_SHA256="0cc4066f055c4b85d0d6cc267d489d8781ca10a3fe1c88d42551bd56d3244692"
+SOURCE_DIR="OpenStarbound-$srcGitRev"
+PATCHES="openstarbound-$portVersion.patchset"
+ADDITIONAL_FILES="openstarbound.rdef.in"
+
+ARCHITECTURES="all !x86_gcc2"
+SECONDARY_ARCHITECTURES="x86"
+
+PROVIDES="
+	openstarbound$secondaryArchSuffix = $portVersion
+	cmd:starbound
+	cmd:starbound_server
+	"
+REQUIRES="
+	haiku$secondaryArchSuffix
+	lib:libcpr$secondaryArchSuffix
+	lib:libcurl$secondaryArchSuffix
+	lib:libexecinfo$secondaryArchSuffix
+	lib:libfreetype$secondaryArchSuffix
+	lib:libGL$secondaryArchSuffix
+	lib:libglew$secondaryArchSuffix
+	lib:libglfw$secondaryArchSuffix
+	lib:libglu$secondaryArchSuffix
+	lib:libimgui$secondaryArchSuffix
+	lib:libogg$secondaryArchSuffix
+	lib:libopus$secondaryArchSuffix
+	lib:libpng16$secondaryArchSuffix
+	lib:libre2$secondaryArchSuffix
+	lib:libSDL3$secondaryArchSuffix
+	lib:libvorbis$secondaryArchSuffix
+	lib:libvorbisfile$secondaryArchSuffix
+	lib:libvulkan$secondaryArchSuffix
+	#lib:libwayland_client$secondaryArchSuffix # Optional
+	#lib:libxkbcommon$secondaryArchSuffix # Optional, used with Wayland
+	lib:libz$secondaryArchSuffix
+	lib:libzstd$secondaryArchSuffix
+	"
+
+SUMMARY_tools="Game asset editing tools bundled with OpenStarbound"
+DESCRIPTION_tools="A collection of game asset editing tools bundled with Starbound."
+
+PROVIDES_tools="
+	openstarbound_tools$secondaryArchSuffix = $portVersion
+	"
+REQUIRES_tools="
+	haiku$secondaryArchSuffix
+	openstarbound$secondaryArchSuffix == $portVersion base
+	lib:libcpr$secondaryArchSuffix
+	lib:libcurl$secondaryArchSuffix
+	lib:libexecinfo$secondaryArchSuffix
+	lib:libfreetype$secondaryArchSuffix
+	lib:libglfw$secondaryArchSuffix
+	lib:libimgui$secondaryArchSuffix
+	lib:libogg$secondaryArchSuffix
+	lib:libopus$secondaryArchSuffix
+	lib:libpng16$secondaryArchSuffix
+	lib:libQT5$secondaryArchSuffix
+	lib:libre2$secondaryArchSuffix
+	lib:libSDL3$secondaryArchSuffix
+	lib:libvorbis$secondaryArchSuffix
+	lib:libvorbisfile$secondaryArchSuffix
+	lib:libvulkan$secondaryArchSuffix
+	lib:libz$secondaryArchSuffix
+	lib:libzstd$secondaryArchSuffix
+	"
+
+BUILD_REQUIRES="
+	haiku${secondaryArchSuffix}_devel
+	devel:libcpr$secondaryArchSuffix
+	devel:libcurl$secondaryArchSuffix
+	devel:libexecinfo$secondaryArchSuffix
+	devel:libfreetype$secondaryArchSuffix
+	devel:libGL$secondaryArchSuffix
+	devel:libglew$secondaryArchSuffix
+	devel:libglfw$secondaryArchSuffix
+	devel:libimgui$secondaryArchSuffix
+	devel:libopus$secondaryArchSuffix
+	devel:libpng16$secondaryArchSuffix
+	devel:libQT5$secondaryArchSuffix
+	devel:libre2$secondaryArchSuffix
+	devel:libSDL3$secondaryArchSuffix
+	devel:libssl$secondaryArchSuffix
+	devel:libvorbis$secondaryArchSuffix
+	devel:libvorbisfile$secondaryArchSuffix
+	devel:libvulkan$secondaryArchSuffix
+	#devel:libwayland_client$secondaryArchSuffix # Optional
+	#devel:libxkbcommon$secondaryArchSuffix # Optional, used with Wayland
+	devel:libz$secondaryArchSuffix
+	devel:libzstd$secondaryArchSuffix
+	"
+BUILD_PREREQUIRES="
+	#cmd:ccache # Optional, to enable ccache during build
+	#cmd:clang >= 21 # Needed to build with clang, 19+ is known to work
+	cmd:cmake
+	cmd:gcc$secondaryArchSuffix
+	cmd:make
+	cmd:pkg_config$secondaryArchSuffix
+	"
+
+BUILD()
+{
+	export CXXFLAGS="-D_DEFAULT_SOURCE -D_GNU_SOURCE"
+
+	cmake -Bbuild -Ssource \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DSTAR_BUILD_QT_TOOLS=ON #-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+
+	make -C build $jobArgs
+}
+
+INSTALL()
+{
+	# Generate the rdef
+	local MAJOR="`echo "$portVersion" | cut -d. -f1`"
+	local MIDDLE="`echo "$portVersion" | cut -d. -f2`"
+	local MINOR="`echo "$portVersion" | cut -d. -f3`"
+	local LONG_INFO="$SUMMARY"
+	sed \
+		-e "s|@MAJOR@|$MAJOR|" \
+		-e "s|@MIDDLE@|$MIDDLE|" \
+		-e "s|@MINOR@|$MINOR|" \
+		-e "s|@LONG_INFO@|$LONG_INFO|" \
+		$portDir/additional-files/openstarbound.rdef.in > openstarbound.rdef
+
+	addResourcesToBinaries openstarbound.rdef $sourceDir/dist/starbound
+
+	# Pack and copy assets
+	$sourceDir/dist/asset_packer $sourceDir/assets/opensb $sourceDir/opensb.pak
+	mkdir -p $dataDir/OpenStarbound/assets && mv $sourceDir/opensb.pak $dataDir/OpenStarbound/assets
+	# Make the app name uppercase and move binaries
+	mkdir -p $appsDir/OpenStarbound && mv $sourceDir/dist/starbound $appsDir/OpenStarbound/Starbound
+	mv $sourceDir/dist/* $appsDir/OpenStarbound
+	# Copy init script
+	cp $sourceDir/scripts/linux/sbinit.config $appsDir/OpenStarbound
+
+	packageEntries tools \
+		$appsDir/OpenStarbound/asset_packer \
+		$appsDir/OpenStarbound/asset_unpacker \
+		$appsDir/OpenStarbound/btree_repacker \
+		$appsDir/OpenStarbound/dump_versioned_json \
+		$appsDir/OpenStarbound/json_tool \
+		$appsDir/OpenStarbound/make_versioned_json
+
+	# Then link binaries around as appropriate
+	ln -s $appsDir/OpenStarbound/Starbound $appsDir/Starbound
+	mkdir -p $prefix/bin && ln -s $appsDir/OpenStarbound/Starbound $prefix/bin/starbound
+	ln -s $appsDir/OpenStarbound/starbound_server $prefix/bin/starbound_server
+	addAppDeskbarSymlink $appsDir/OpenStarbound/Starbound
+}
